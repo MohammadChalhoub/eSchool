@@ -29,7 +29,7 @@ on:
       - "docker-compose-test.override.yml"
 
 jobs:
-  build:
+  Build:
     runs-on: ubuntu-latest
 
     steps:
@@ -41,10 +41,10 @@ jobs:
       - name: build
         run: docker-compose build enrolling.api
 
-  test:
+  UnitTests:
     runs-on: ubuntu-latest
 
-    needs: build
+    needs: Build
 
     steps:
       - uses: actions/checkout@v2
@@ -57,3 +57,20 @@ jobs:
 
       - name: run tests
         run: docker-compose -f docker-compose-test.yml -f docker-compose-test.override.yml run enrolling.api.test
+        
+  FunctionalTests:
+    runs-on: ubuntu-latest
+
+    needs: Build
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: set image tag
+        run: echo "TAG=$(git tag --points-at HEAD | cut -c 2-4)" >> $GITHUB_ENV
+
+      - name: build
+        run: docker-compose -f docker-compose-test.yml -f docker-compose-test.override.yml build enrolling.api.functional-test
+
+      - name: run tests
+        run: docker-compose -f docker-compose-test.yml -f docker-compose-test.override.yml run enrolling.api.functional-test
