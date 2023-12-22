@@ -68,12 +68,12 @@ services:
     ports:
       - "5101:80"
 
-  frontend.blazor:
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://0.0.0.0:80
-    ports:
-      - "5200:80"
+  # frontend.blazor:
+  #   environment:
+  #     - ASPNETCORE_ENVIRONMENT=Development
+  #     - ASPNETCORE_URLS=http://0.0.0.0:80
+  #   ports:
+  #     - "5200:80"
 
   jaeger:
     environment:
@@ -86,4 +86,4 @@ services:
       - 16686:16686
       - 14268:14268
       - 14250:14250
-      - 9411:9411
+      # - 9411:9411
