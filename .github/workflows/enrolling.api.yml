@@ -129,4 +129,4 @@ jobs:
           context: .
           file: ./src/Services/Enrolling/Dockerfile
           push: true
-          tags: mohammadchalhoub/enrolling.api:${{ env.TAG }}
+          tags: mohammadchalhoub/enrolling.api:${{ GITHUB_ENV.TAG }}
