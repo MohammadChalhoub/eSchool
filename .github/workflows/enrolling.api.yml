@@ -141,3 +141,10 @@ jobs:
           file: ./src/Services/Enrolling/Enrolling.API/Dockerfile
           push: true
           tags: mohammadchalhoub/enrolling.api:${{ env.TAG }}
+
+      - name: Run Docker container for testing
+        run: |
+          docker run -d --name test-container mohammadchalhoub/enrolling.api:${{ env.TAG }}
+
+      - name: Clean up test container
+        run: docker rm -f test-container
