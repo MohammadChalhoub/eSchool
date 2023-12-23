@@ -9,6 +9,7 @@ namespace ResultProcessing.API.Controllers
         [HttpGet]
         public ActionResult<string> Ping()
         {
+
             return Ok("This is new Web API");
         }
     }

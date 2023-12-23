@@ -37,7 +37,7 @@ namespace OpenCodeFoundation.ESchool.Services.Enrolling.API.Controllers
             EnrollmentId id,
             CancellationToken cancellationToken)
         {
-            var enrollment= await _sender
+            var enrollment = await _sender
                 .Send(new GetEnrollmentByIdQuery(id), cancellationToken)
                 .ConfigureAwait(false);
 

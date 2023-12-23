@@ -9,6 +9,7 @@ namespace LibraryManagement.API.Controllers
         [HttpGet]
         public ActionResult<string> Ping()
         {
+
             return Ok("Pong");
         }
     }
