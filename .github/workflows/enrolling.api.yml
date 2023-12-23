@@ -138,6 +138,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./src/Services/Enrolling/Dockerfile
+          file: ./src/Services/Enrolling/Enrolling.API/Dockerfile
           push: true
           tags: mohammadchalhoub/enrolling.api:${{ env.TAG }}
