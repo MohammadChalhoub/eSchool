@@ -46,67 +46,82 @@ jobs:
       - name: build
         run: docker-compose build enrolling.api
 
-  # UnitTests:
-  #   runs-on: ubuntu-latest
+  UnitTests:
+    runs-on: ubuntu-latest
 
-  #   needs: Build
+    needs: Build
 
-  #   steps:
-  #     - uses: actions/checkout@v2
+    steps:
+      - uses: actions/checkout@v2
 
-  #     - name: set image tag
-  #       run: echo "TAG=$(git tag --points-at HEAD | cut -c 2-4)" >> $GITHUB_ENV
+      - name: set image tag
+        run: echo "TAG=$(git tag --points-at HEAD | cut -c 2-4)" >> $GITHUB_ENV
 
 
-  #     - name: build
-  #       run: docker-compose -f docker-compose-test.yml -f docker-compose-test.override.yml build enrolling.api.test
+      - name: build
+        run: docker-compose -f docker-compose-test.yml -f docker-compose-test.override.yml build enrolling.api.test
 
-  #     - name: run tests
-  #       run: docker-compose -f docker-compose-test.yml -f docker-compose-test.override.yml run enrolling.api.test
+      - name: run tests
+        run: docker-compose -f docker-compose-test.yml -f docker-compose-test.override.yml run enrolling.api.test
         
-  # FunctionalTests:
-  #   runs-on: ubuntu-latest
+  FunctionalTests:
+    runs-on: ubuntu-latest
 
-  #   needs: Build
+    needs: Build
 
-  #   steps:
-  #     - uses: actions/checkout@v2
+    steps:
+      - uses: actions/checkout@v2
 
-  #     - name: set image tag
-  #       run: echo "TAG=$(git tag --points-at HEAD | cut -c 2-4)" >> $GITHUB_ENV
+      - name: set image tag
+        run: echo "TAG=$(git tag --points-at HEAD | cut -c 2-4)" >> $GITHUB_ENV
 
-  #     - name: build
-  #       run: docker-compose -f docker-compose-test.yml -f docker-compose-test.override.yml build enrolling.api.functional-test
+      - name: build
+        run: docker-compose -f docker-compose-test.yml -f docker-compose-test.override.yml build enrolling.api.functional-test
 
-  #     - name: run tests
-  #       run: docker-compose -f docker-compose-test.yml -f docker-compose-test.override.yml run enrolling.api.functional-test
+      - name: run tests
+        run: docker-compose -f docker-compose-test.yml -f docker-compose-test.override.yml run enrolling.api.functional-test
         
-  # StaticCodeAnalysis:
-  #   name: CodeQL Analysis
-  #   runs-on: ubuntu-latest
-  #   needs: [UnitTests, FunctionalTests]
-  #   strategy:
-  #     matrix:
-  #       language: ['csharp']
-  #   steps:
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v2
-
-  #     - uses: actions/setup-dotnet@v1
-  #       with:
-  #         dotnet-version: '6.0.x'
-  #         include-prerelease: true
-
-  #     - name: Initialize CodeQL
-  #       uses: github/codeql-action/init@v1
-  #       with:
-  #         languages: ${{ matrix.language }}
-
-  #     - name: Autobuild
-  #       uses: github/codeql-action/autobuild@v1
-
-  #     - name: Perform CodeQL Analysis
-  #       uses: github/codeql-action/analyze@v1
+  StaticCodeAnalysis:
+        name: CodeQL Analysis
+        runs-on: ubuntu-latest
+        needs: Build
+        
+        steps:
+          - name: Checkout repository
+            uses: actions/checkout@v2
+      
+          - uses: actions/setup-dotnet@v1
+            with:
+              dotnet-version: '6.0.x'
+              include-prerelease: true
+      
+          - name: Initialize CodeQL
+            uses: github/codeql-action/init@v2
+            with:
+              languages: 'csharp'
+      
+          - name: Autobuild
+            uses: github/codeql-action/autobuild@v2
+      
+          - name: Perform CodeQL Analysis
+            uses: github/codeql-action/analyze@v2
+            
+  Sanitycheck:
+      name: Sanity Check
+      runs-on: ubuntu-latest
+      needs: Build
+  
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v2
+  
+        - name: Install misspell
+          run: |
+            curl -L -o ./install-misspell.sh https://git.io/misspell
+            sh ./install-misspell.sh
+  
+        - name: Run misspell
+          run: ./bin/misspell -error .
         
   DockerPush:
     runs-on: ubuntu-latest
@@ -148,27 +163,27 @@ jobs:
           docker ps -a
           docker logs test-container
           
-  Deploy:
-    runs-on: ubuntu-latest
-    needs: DockerPush
-    steps:
-      - uses: actions/checkout@v2
+  # Deploy:
+  #   runs-on: ubuntu-latest
+  #   needs: DockerPush
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-      - name: Set up SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.HOST }} > ~/.ssh/known_hosts
+  #     - name: Set up SSH
+  #       run: |
+  #         mkdir -p ~/.ssh
+  #         echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+  #         chmod 600 ~/.ssh/id_rsa
+  #         ssh-keyscan -H ${{ secrets.HOST }} > ~/.ssh/known_hosts
 
-      - name: Deploy to EC2
-        env:
-          TAG: ${{ env.TAG }}
-        run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@${{ secrets.HOST }} "
-            docker pull mohammadchalhoub/enrolling.api:$TAG &&
-            docker stop myapp || true &&
-            docker rm myapp || true &&
-            docker run -d --name myapp -p 80:80 mohammadchalhoub/enrolling.api:$TAG
-          "
+  #     - name: Deploy to EC2
+  #       env:
+  #         TAG: ${{ env.TAG }}
+  #       run: |
+  #         ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@${{ secrets.HOST }} "
+  #           docker pull mohammadchalhoub/enrolling.api:$TAG &&
+  #           docker stop myapp || true &&
+  #           docker rm myapp || true &&
+  #           docker run -d --name myapp -p 80:80 mohammadchalhoub/enrolling.api:$TAG
+  #         "
 
