@@ -54,7 +54,7 @@ jobs:
       name: CodeQL Analysis
       runs-on: ubuntu-latest
       needs: Build
-       
+      
       steps:
         - name: Checkout repository
           uses: actions/checkout@v2
@@ -65,12 +65,29 @@ jobs:
             include-prerelease: true
     
         - name: Initialize CodeQL
-          uses: github/codeql-action/init@v1
+          uses: github/codeql-action/init@v2
           with:
             languages: 'csharp'
     
         - name: Autobuild
-          uses: github/codeql-action/autobuild@v1
+          uses: github/codeql-action/autobuild@v2
     
         - name: Perform CodeQL Analysis
-          uses: github/codeql-action/analyze@v1
+          uses: github/codeql-action/analyze@v2
+          
+  Sanitycheck:
+      name: Sanity Check
+      runs-on: ubuntu-latest
+      needs: Build
+  
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v2
+  
+        - name: Install misspell
+          run: |
+            curl -L -o ./install-misspell.sh https://git.io/misspell
+            sh ./install-misspell.sh
+  
+        - name: Run misspell
+          run: ./bin/misspell -error .
