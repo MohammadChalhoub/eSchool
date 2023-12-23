@@ -145,3 +145,5 @@ jobs:
       - name: Run Docker container for testing
         run: |
           docker run -d --name test-container mohammadchalhoub/enrolling.api:${{ env.TAG }}
+          docker ps -a
+          docker logs test-container
