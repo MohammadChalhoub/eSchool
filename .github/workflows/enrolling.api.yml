@@ -159,14 +159,13 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H your.ec2.instance.ip > ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.HOST }} > ~/.ssh/known_hosts
 
       - name: Deploy to EC2
         env:
           TAG: ${{ env.TAG }}
         run: |
-          # SSH and Docker commands to deploy your application
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@your.ec2.instance.ip "
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@${{ secrets.HOST }} "
             docker pull mohammadchalhoub/enrolling.api:$TAG &&
             docker stop myapp || true &&
             docker rm myapp || true &&
