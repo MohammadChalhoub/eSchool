@@ -147,3 +147,29 @@ jobs:
           docker run -d --name test-container mohammadchalhoub/enrolling.api:${{ env.TAG }}
           docker ps -a
           docker logs test-container
+          
+  Deploy:
+    runs-on: ubuntu-latest
+    needs: DockerPush
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H your.ec2.instance.ip > ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        env:
+          TAG: ${{ env.TAG }}
+        run: |
+          # SSH and Docker commands to deploy your application
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@your.ec2.instance.ip "
+            docker pull mohammadchalhoub/enrolling.api:$TAG &&
+            docker stop myapp || true &&
+            docker rm myapp || true &&
+            docker run -d --name myapp -p 80:80 mohammadchalhoub/enrolling.api:$TAG
+          "
+
